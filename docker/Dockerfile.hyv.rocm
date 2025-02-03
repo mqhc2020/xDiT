@@ -1,0 +1,40 @@
+ARG base_image=rocm/pytorch:latest
+
+FROM $base_image
+
+ARG work_dir=/hunyuanvideo
+
+# SSH (insecure, for development use)
+# add docker build argument: --build-arg ssh_pub_key="$(cat ~/.ssh/id_rsa.pub)" --build-arg ssh_prv_key="$(cat ~/.ssh/id_rsa)"
+ARG ssh_pub_key
+ARG ssh_prv_key
+RUN mkdir -p /root/.ssh && \
+    chmod 0700 /root/.ssh
+RUN ssh-keyscan github.com >> /root/.ssh/known_hosts
+RUN echo "    IdentityFile ~/.ssh/id_rsa" >> /etc/ssh/ssh_config
+RUN echo "$ssh_prv_key" > /root/.ssh/id_rsa && \
+    echo "$ssh_pub_key" > /root/.ssh/id_rsa.pub && \
+    chmod 600 /root/.ssh/id_rsa && \
+    chmod 600 /root/.ssh/id_rsa.pub
+
+WORKDIR $work_dir
+
+RUN pip install diffusers distvae yunchang==0.5.0 opencv-python accelerate
+RUN pip install imageio imageio-ffmpeg
+
+# xDiT repository
+RUN git clone git@github.com:mqhc2020/xDiT.git -b rocm_opt && \
+    cd xDiT && \
+    pip install --no-deps -e .
+
+# flash attn
+#ARG FA_SHA="22c0358"
+#ARG FA_REPO="https://github.com/ROCm/flash-attention.git"
+#ARG PYTORCH_ROCM_ARCH="gfx942"
+#RUN git clone ${FA_REPO} && \
+#    cd flash-attention && \
+#    git checkout ${FA_SHA} && \
+#    git submodule update --init && \
+#    GPU_ARCHS=${PYTORCH_ROCM_ARCH} python3 setup.py bdist_wheel --dist-dir=dist && \
+#    pip install -f dist/*.whl;
+
