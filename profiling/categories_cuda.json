@@ -1,0 +1,9 @@
+{
+    "model": "hunyuan video",
+    "keywords": {
+	"attention": ["flash_fwd_kernel"],
+	"gemm": ["gemm"],
+	"elementwise": ["elementwise_"],
+        "ccl": ["rccl", "nccl", "cross_device_reduce", "reduce_kernel"]
+    }
+}

@@ -7,8 +7,7 @@ export PYTHONPATH=$PWD:$PYTHONPATH
 SCRIPT="hunyuan_video_usp_example.py"
 #MODEL_ID="/cfs/dit/HunyuanVideo"
 MODEL_ID="tencent/HunyuanVideo"
-INFERENCE_STEP=50
-WARMUP_STEPS=1
+WARMUP_STEPS=0
 
 mkdir -p ./results
 
@@ -16,7 +15,7 @@ mkdir -p ./results
 TASK_ARGS="--height 720 --width 1280 --num_frames 129"
 
 # CogVideoX parallel configuration
-N_GPUS=8
+N_GPUS=1
 #PARALLEL_ARGS="--ulysses_degree 4 --ring_degree 2"
 # CFG_ARGS="--use_cfg_parallel"
 
@@ -28,10 +27,22 @@ ENABLE_TILING="--enable_tiling"
 ENABLE_MODEL_CPU_OFFLOAD="--enable_model_cpu_offload"
 # COMPILE_FLAG="--use_torch_compile"
 
-for ulysses_degree in 8
+if [[ "$PROFILE_DIFFUSION" == "1" ]]; then
+    INFERENCE_STEP=3
+    OUTPUT_ARGS="--output_type latent"
+    PROFILING_OPTION="--profiling diffusion"
+elif [[ "$PROFILE_VAE" == "1" ]]; then
+    INFERENCE_STEP=0
+    PROFILING_OPTION="--profiling vae"
+else
+    INFERENCE_STEP=50
+    PROFILING_OPTION=""
+fi
+
+for ulysses_degree in $N_GPUS
 #for ulysses_degree in 1 2 4 8
 do
-	ring_degree=$((8/$ulysses_degree))
+	ring_degree=$(($N_GPUS/$ulysses_degree))
 	PARALLEL_ARGS="--ulysses_degree ${ulysses_degree} --ring_degree ${ring_degree}"
 	torchrun --nproc_per_node=$N_GPUS ./examples/$SCRIPT \
 		--model $MODEL_ID \
@@ -46,5 +57,6 @@ do
 		$PARALLLEL_VAE \
 		$ENABLE_TILING \
 		$ENABLE_MODEL_CPU_OFFLOAD \
-		$COMPILE_FLAG
+		$COMPILE_FLAG \
+		$PROFILING_OPTION
 done

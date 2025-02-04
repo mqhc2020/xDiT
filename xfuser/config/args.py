@@ -154,6 +154,9 @@ class xFuserArgs:
             action="store_true",
             help="Enable onediff to accelerate inference in a single card",
         )
+        runtime_group.add_argument(
+            "--profiling", type=str, default=None, metavar="STRING", help="Profiling options."
+        )
 
         # Parallel arguments
         parallel_group = parser.add_argument_group("Parallel Processing Options")

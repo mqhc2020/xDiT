@@ -1,0 +1,11 @@
+{
+    "model": "hunyuan video",
+    "keywords": {
+	"attention": ["ck_tile", "ck16", "attn_fwd"],
+	"gemm": ["cijk"],
+	"MIOpen": ["batched_transpose", "Im3d2Col"],
+	"elementwise": ["elementwise_"],
+        "ccl": ["rccl", "nccl", "cross_device_reduce", "reduce_kernel"],
+	"ATen": ["at::"]
+    }
+}

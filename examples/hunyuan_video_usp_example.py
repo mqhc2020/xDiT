@@ -31,6 +31,8 @@ from xfuser.core.distributed import (
 
 from xfuser.model_executor.layers.attention_processor import xFuserHunyuanVideoAttnProcessor2_0
 
+from profiling.rpd_handler import *
+
 assert xFuserHunyuanVideoAttnProcessor2_0 is not None
 
 
@@ -285,6 +287,12 @@ def main():
         ).frames[0]
 
     torch.cuda.reset_peak_memory_stats()
+
+    # profiling
+    if local_rank == 0 and (args.profiling == "diffusion" or args.profiling == "vae"):
+        profiler = HipTx()
+        profiler.start_profiling()
+
     start_time = time.time()
 
     output = pipe(
@@ -299,6 +307,11 @@ def main():
 
     end_time = time.time()
     elapsed_time = end_time - start_time
+
+    # profiling
+    if local_rank == 0 and (args.profiling == "diffusion" or args.profiling == "vae"):
+        profiler.stop_profiling()
+
     peak_memory = torch.cuda.max_memory_allocated(device=f"cuda:{local_rank}")
 
     parallel_info = (
