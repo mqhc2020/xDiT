@@ -15,7 +15,7 @@ mkdir -p ./results
 TASK_ARGS="--height 720 --width 1280 --num_frames 129"
 
 # CogVideoX parallel configuration
-N_GPUS=1
+N_GPUS=8
 #PARALLEL_ARGS="--ulysses_degree 4 --ring_degree 2"
 # CFG_ARGS="--use_cfg_parallel"
 
@@ -24,7 +24,7 @@ N_GPUS=1
 #OUTPUT_ARGS="--output_type latent"
 # PARALLLEL_VAE="--use_parallel_vae"
 ENABLE_TILING="--enable_tiling"
-ENABLE_MODEL_CPU_OFFLOAD="--enable_model_cpu_offload"
+#ENABLE_MODEL_CPU_OFFLOAD="--enable_model_cpu_offload"
 # COMPILE_FLAG="--use_torch_compile"
 
 if [[ "$PROFILE_DIFFUSION" == "1" ]]; then
@@ -35,7 +35,7 @@ elif [[ "$PROFILE_VAE" == "1" ]]; then
     INFERENCE_STEP=0
     PROFILING_OPTION="--profiling vae"
 else
-    INFERENCE_STEP=50
+    INFERENCE_STEP=30
     PROFILING_OPTION=""
 fi
 
