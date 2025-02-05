@@ -44,7 +44,8 @@ fi
 if [[ "$SWEEP_BENCHMARK" == "1" ]]; then
 	time=$(date +%Y-%m-%d_%H:%M:%S)
 	LOGFILE=hyvideo_xdit_$time.log
-	for ulysses_degree in 1 2 4 8
+	for ulysses_degree in 8
+	#for ulysses_degree in 1 2 4 8
 	do
 		if [[ "$ulysses_degree" == "1" ]]; then
 			vae_options=("")
@@ -96,7 +97,7 @@ else
 		$CFG_ARGS \
 		$PARALLLEL_VAE \
 		$ENABLE_TILING \
-		$ENABLE_MODEL_CPU_OFFLOAD \
 		$COMPILE_FLAG \
 		$PROFILING_OPTION
+		#$ENABLE_MODEL_CPU_OFFLOAD \
 fi
