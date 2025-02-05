@@ -1,0 +1,29 @@
+ARG base_image=nvcr.io/nvidia/pytorch:25.01-py3
+
+FROM $base_image
+
+ARG work_dir=/hunyuanvideo
+
+# SSH (insecure, for development use)
+# add docker build argument: --build-arg ssh_pub_key="$(cat ~/.ssh/id_rsa.pub)" --build-arg ssh_prv_key="$(cat ~/.ssh/id_rsa)"
+ARG ssh_pub_key
+ARG ssh_prv_key
+RUN mkdir -p /root/.ssh && \
+    chmod 0700 /root/.ssh
+RUN ssh-keyscan github.com >> /root/.ssh/known_hosts
+RUN echo "    IdentityFile ~/.ssh/id_rsa" >> /etc/ssh/ssh_config
+RUN echo "$ssh_prv_key" > /root/.ssh/id_rsa && \
+    echo "$ssh_pub_key" > /root/.ssh/id_rsa.pub && \
+    chmod 600 /root/.ssh/id_rsa && \
+    chmod 600 /root/.ssh/id_rsa.pub
+
+WORKDIR $work_dir
+
+RUN pip install flash_attn==2.7.3
+RUN pip install "huggingface_hub[cli]"
+RUN pip install diffusers distvae yunchang accelerate opencv-python
+RUN pip install imageio imageio-ffmpeg
+
+# hyv repository
+RUN git clone git@github.com:Tencent/HunyuanVideo.git && \
+    pip install -r HunyuanVideo/requirements.txt
