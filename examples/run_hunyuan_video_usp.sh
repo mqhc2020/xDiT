@@ -41,9 +41,9 @@ else
     PROFILING_OPTION=""
 fi
 
+time=$(date +%Y-%m-%d_%H:%M:%S)
+LOGFILE=hyvideo_xdit_$time.log
 if [[ "$SWEEP_BENCHMARK" == "1" ]]; then
-	time=$(date +%Y-%m-%d_%H:%M:%S)
-	LOGFILE=hyvideo_xdit_$time.log
 	for ulysses_degree in 8
 	#for ulysses_degree in 1 2 4 8
 	do
@@ -82,6 +82,25 @@ if [[ "$SWEEP_BENCHMARK" == "1" ]]; then
 		done
 	done
 else
+
+	if [[ $MIOPEN_TUNING == '1' ]]; then
+            INFERENCE_STEP=1
+            export MIOPEN_FIND_MODE=1
+            export MIOPEN_FIND_ENFORCE=4
+            export MIOPEN_ENABLE_LOGGING=1
+            export MIOPEN_ENABLE_LOGGING_CMD=1
+            export MIOPEN_LOG_LEVEL=6
+        else
+            # tar jxf tuning/sdxl_mi300x_miopen.tar.bz2 -C /root/.config/miopen/
+            export MIOPEN_FIND_MODE=5
+            unset MIOPEN_FIND_ENFORCE
+            #export MIOPEN_ENABLE_LOGGING=1
+            #export MIOPEN_ENABLE_LOGGING_CMD=1
+            unset MIOPEN_ENABLE_LOGGING
+            unset MIOPEN_ENABLE_LOGGING_CMD
+            unset MIOPEN_LOG_LEVEL
+        fi
+
 	ulysses_degree=$N_GPUS
 	ring_degree=$(($N_GPUS/$ulysses_degree))
 	PARALLEL_ARGS="--ulysses_degree ${ulysses_degree} --ring_degree ${ring_degree}"
@@ -98,6 +117,7 @@ else
 		$PARALLLEL_VAE \
 		$ENABLE_TILING \
 		$COMPILE_FLAG \
-		$PROFILING_OPTION
+		$PROFILING_OPTION \
+		2>&1 | tee -a ./logs/$LOGFILE
 		#$ENABLE_MODEL_CPU_OFFLOAD \
 fi
