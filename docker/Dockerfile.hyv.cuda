@@ -24,6 +24,7 @@ RUN pip install "huggingface_hub[cli]"
 RUN pip install diffusers distvae yunchang accelerate opencv-python
 RUN pip install imageio imageio-ffmpeg
 
-# hyv repository
-RUN git clone git@github.com:Tencent/HunyuanVideo.git && \
-    pip install -r HunyuanVideo/requirements.txt
+# xDiT repository
+RUN git clone git@github.com:mqhc2020/xDiT.git -b rocm_opt && \
+    cd xDiT && \
+    pip install --no-deps -e .
