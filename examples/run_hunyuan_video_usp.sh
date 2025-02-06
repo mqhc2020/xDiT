@@ -7,7 +7,7 @@ export PYTHONPATH=$PWD:$PYTHONPATH
 SCRIPT="hunyuan_video_usp_example.py"
 #MODEL_ID="/cfs/dit/HunyuanVideo"
 MODEL_ID="tencent/HunyuanVideo"
-WARMUP_STEPS=0
+WARMUP_STEPS=1
 
 mkdir -p ./results
 mkdir -p ./logs
@@ -26,7 +26,7 @@ N_GPUS=8
 # PARALLLEL_VAE="--use_parallel_vae"
 ENABLE_TILING="--enable_tiling"
 ENABLE_SLICING="--enable_slicing"
-ENABLE_MODEL_CPU_OFFLOAD="--enable_model_cpu_offload"
+# ENABLE_MODEL_CPU_OFFLOAD="--enable_model_cpu_offload"
 # COMPILE_FLAG="--use_torch_compile"
 
 if [[ "$PROFILE_DIFFUSION" == "1" ]]; then
@@ -44,11 +44,10 @@ fi
 time=$(date +%Y-%m-%d_%H:%M:%S)
 LOGFILE=hyvideo_xdit_$time.log
 if [[ "$SWEEP_BENCHMARK" == "1" ]]; then
-	for ulysses_degree in 8
-	#for ulysses_degree in 1 2 4 8
+	for ulysses_degree in 1 2 4 8
 	do
 		if [[ "$ulysses_degree" == "1" ]]; then
-			vae_options=("")
+			vae_options=("--enable_tiling")
 		else
 			vae_options=("--enable_tiling" "--enable_tiling --enable_slicing")
 			#vae_options=("" "--enable_tiling" "--enable_slicing" "--enable_tiling --enable_slicing")
@@ -56,7 +55,7 @@ if [[ "$SWEEP_BENCHMARK" == "1" ]]; then
 		for ENABLE_TILING_SLICING in "${vae_options[@]}"
 		do
 			echo "ENABLE_TILING_SLICING: " $ENABLE_TILING_SLICING
-			offload_options=("" $ENABLE_MODEL_CPU_OFFLOAD)
+			offload_options=("" "--enable_model_cpu_offload")
 			for ENABLE_MODEL_CPU_OFFLOAD in "${offload_options[@]}"
 			do
 				echo "CPU_OFFLOAD: " $CPU_OFFLOAD
@@ -91,7 +90,6 @@ else
             export MIOPEN_ENABLE_LOGGING_CMD=1
             export MIOPEN_LOG_LEVEL=6
         else
-            # tar jxf tuning/sdxl_mi300x_miopen.tar.bz2 -C /root/.config/miopen/
             export MIOPEN_FIND_MODE=5
             unset MIOPEN_FIND_ENFORCE
             #export MIOPEN_ENABLE_LOGGING=1
@@ -116,8 +114,8 @@ else
 		$CFG_ARGS \
 		$PARALLLEL_VAE \
 		$ENABLE_TILING \
+		$ENABLE_MODEL_CPU_OFFLOAD \
 		$COMPILE_FLAG \
 		$PROFILING_OPTION \
 		2>&1 | tee -a ./logs/$LOGFILE
-		#$ENABLE_MODEL_CPU_OFFLOAD \
 fi

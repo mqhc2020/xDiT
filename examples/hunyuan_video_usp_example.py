@@ -286,6 +286,19 @@ def main():
                 input_config.seed),
         ).frames[0]
 
+    # warmup
+    if engine_config.runtime_config.warmup_steps > 0:
+        output = pipe(
+            height=input_config.height,
+            width=input_config.width,
+            num_frames=input_config.num_frames,
+            prompt=input_config.prompt,
+            output_type="latent",
+            num_inference_steps=engine_config.runtime_config.warmup_steps,
+            generator=torch.Generator(device="cuda").manual_seed(
+                input_config.seed),
+        ).frames[0]
+
     torch.cuda.reset_peak_memory_stats()
 
     # profiling

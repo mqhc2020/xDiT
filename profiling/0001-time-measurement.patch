@@ -1,0 +1,49 @@
+From 00acdda267bb42577af83cdf9db22ce27c180ab6 Mon Sep 17 00:00:00 2001
+From: Marvin Tsai <62472426+mqhc2020@users.noreply.github.com>
+Date: Thu, 6 Feb 2025 14:32:05 +0000
+Subject: [PATCH] time measurement
+
+---
+ .../hunyuan_video/pipeline_hunyuan_video.py        | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+
+diff --git a/src/diffusers/pipelines/hunyuan_video/pipeline_hunyuan_video.py b/src/diffusers/pipelines/hunyuan_video/pipeline_hunyuan_video.py
+index d15ef18e1..80b3bf666 100644
+--- a/src/diffusers/pipelines/hunyuan_video/pipeline_hunyuan_video.py
++++ b/src/diffusers/pipelines/hunyuan_video/pipeline_hunyuan_video.py
+@@ -644,6 +644,13 @@ class HunyuanVideoPipeline(DiffusionPipeline, HunyuanVideoLoraLoaderMixin):
+         num_warmup_steps = len(timesteps) - num_inference_steps * self.scheduler.order
+         self._num_timesteps = len(timesteps)
+ 
++        import time
++        import os
++        local_rank = int(os.environ["LOCAL_RANK"])
++        world_size = int(os.environ['WORLD_SIZE'])
++        if local_rank == world_size - 1:
++            start_time = time.time()
++
+         with self.progress_bar(total=num_inference_steps) as progress_bar:
+             for i, t in enumerate(timesteps):
+                 if self.interrupt:
+@@ -685,11 +692,18 @@ class HunyuanVideoPipeline(DiffusionPipeline, HunyuanVideoLoraLoaderMixin):
+                     xm.mark_step()
+ 
+         self._current_timestep = None
++        if local_rank == world_size - 1:
++            stop_time = time.time()
+ 
+         if not output_type == "latent":
++            if local_rank == world_size - 1:
++                start_time = time.time()
+             latents = latents.to(self.vae.dtype) / self.vae.config.scaling_factor
+             video = self.vae.decode(latents, return_dict=False)[0]
+             video = self.video_processor.postprocess_video(video, output_type=output_type)
++            if local_rank == world_size - 1:
++                stop_time = time.time()
++                print("VAE duration: ", stop_time - start_time)
+         else:
+             video = latents
+ 
+-- 
+2.34.1
+
